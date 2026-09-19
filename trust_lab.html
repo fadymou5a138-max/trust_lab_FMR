@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trust Lab — تقارير التحاليل</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1565C0;--blue-dark:#0D47A1;--blue-light:#E3F2FD;
+  --blue-acc:#42A5F5;--text:#1A2B45;--gray:#546E7A;
+  --border:#C5D3EA;--bg:#F8FAFD;--white:#fff;
+  --green:#2E7D32;--red:#C62828;
+}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+nav{background:var(--blue-dark);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-brand{color:#fff;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.nav-sub{font-size:11px;opacity:.7;font-weight:400}
+.nav-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 12px;font-size:12px;color:#BBDEFB}
+.container{max-width:900px;margin:0 auto;padding:1.5rem}
+.card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem}
+.card-title{font-size:15px;font-weight:700;color:var(--blue-dark);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:2px solid var(--blue-light);display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:600px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+label{font-size:13px;font-weight:600;color:var(--gray)}
+input,select,textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'Cairo',sans-serif;color:var(--text);background:var(--white);outline:none;direction:rtl;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--blue-acc);box-shadow:0 0 0 3px rgba(66,165,245,.1)}
+textarea{resize:vertical;min-height:70px}
+.tests-header{display:grid;grid-template-columns:2.5fr 1.5fr 1.2fr 1.5fr 1fr 40px;gap:8px;padding:8px 10px;background:var(--blue-dark);border-radius:8px;margin-bottom:8px}
+.tests-header span{font-size:12px;font-weight:700;color:#fff;text-align:center}
+.tests-header span:first-child{text-align:right}
+.test-row{display:grid;grid-template-columns:2.5fr 1.5fr 1.2fr 1.5fr 1fr 40px;gap:8px;align-items:center;padding:6px 10px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;margin-bottom:6px}
+.test-row input,.test-row select{padding:6px 8px;font-size:13px}
+.btn-del{width:32px;height:32px;border:none;background:#FFEBEE;color:var(--red);border-radius:6px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:background .15s;line-height:1}
+.btn-del:hover{background:#FFCDD2}
+.btn{padding:10px 22px;border-radius:8px;font-size:14px;font-weight:700;font-family:'Cairo',sans-serif;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
+.btn-green{background:#1B5E20;color:#fff}
+.btn-green:hover{background:#2E7D32}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--gray)}
+.btn-outline:hover{border-color:var(--blue-acc);color:var(--blue);background:var(--blue-light)}
+.btn-add{background:var(--blue-light);color:var(--blue);border:1px dashed var(--blue-acc);padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;font-family:'Cairo',sans-serif;cursor:pointer;width:100%;margin-top:4px;transition:all .15s}
+.btn-add:hover{background:#BBDEFB}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:.5rem}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1A2B45;color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;transition:transform .3s,opacity .3s;z-index:9999;opacity:0}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── PRINT STYLES ── */
+@media print {
+  body * { visibility: hidden !important; }
+  #printArea, #printArea * { visibility: visible !important; }
+  #printArea {
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important; padding: 0 !important;
+    background: white !important;
+    z-index: 99999 !important;
+  }
+  @page { margin: 0; size: A4 portrait; }
+}
+
+/* ── REPORT STYLES ── */
+#printArea { display: none; }
+.rpt-header{background:linear-gradient(135deg,#0D47A1 0%,#1976D2 100%);padding:20px 24px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rpt-lab-name{font-size:22px;font-weight:700}
+.rpt-lab-sub{font-size:11px;opacity:.8;margin-top:3px}
+.rpt-badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rpt-badge{background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:2px 12px;font-size:10px}
+.rpt-meta{text-align:left;color:#BBDEFB;font-size:11px}
+.rpt-meta-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
+.rpt-section{padding:14px 24px}
+.rpt-sec-label{background:#0D47A1;color:#fff;padding:4px 14px;border-radius:4px;display:inline-block;font-size:11px;font-weight:700;margin-bottom:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rpt-pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#E3F2FD;padding:12px 16px;border-radius:8px;border:1px solid #90CAF9;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rpt-pf{display:flex;gap:6px;font-size:11px}
+.rpt-pf-lbl{font-weight:700;color:#0D47A1;white-space:nowrap}
+.rpt-table{width:100%;border-collapse:collapse;font-size:11px}
+.rpt-table th{background:#1565C0;color:#fff;padding:7px 8px;text-align:center;font-size:10px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rpt-table th:last-child{text-align:right}
+.rpt-table td{padding:6px 8px;border-bottom:1px solid #E8EFF8;vertical-align:middle}
+.rpt-notes{background:#FFF8E1;border:1px solid #FFB300;border-radius:6px;padding:10px 14px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rpt-notes-lbl{font-weight:700;color:#E65100;margin-bottom:4px}
+.rpt-sigs{display:flex;gap:16px;margin-top:8px}
+.rpt-sig{flex:1;border:1px solid #C5D3EA;border-radius:6px;padding:10px;background:#F8FAFD;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.rpt-sig-lbl{font-size:10px;font-weight:700;color:#0D47A1;margin-bottom:12px}
+.rpt-sig-line{border-top:1px solid #C5D3EA;padding-top:4px;font-size:10px;color:#546E7A}
+.rpt-footer{background:#0D47A1;color:#90CAF9;padding:8px 24px;display:flex;justify-content:space-between;font-size:9px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.s-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 3H4v5l7 9h9l-7-9V3zM9 3h6"/><path d="M15 8H9"/></svg>
+    <div><div>Trust Lab</div><div class="nav-sub">إدارة تقارير التحاليل</div></div>
+  </div>
+  <div class="nav-badge">نظام إصدار التقارير</div>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <div class="card-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      بيانات التقرير
+    </div>
+    <div class="grid-3">
+      <div class="field"><label>رقم التقرير</label><input id="report_no" value="LAB-2024-0001"></div>
+      <div class="field"><label>تاريخ التقرير</label><input type="date" id="report_date"></div>
+      <div class="field"><label>اسم المعمل</label><input value="Trust Lab" readonly style="background:var(--bg)"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      بيانات المريض
+    </div>
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="field"><label>اسم المريض</label><input id="p_name" placeholder="الاسم رباعي"></div>
+      <div class="field"><label>رقم الطلب</label><input id="p_order" placeholder="ORD-2024-0001"></div>
+    </div>
+    <div class="grid-3" style="margin-bottom:14px">
+      <div class="field"><label>العمر</label><input id="p_age" placeholder="مثال: 35 سنة"></div>
+      <div class="field"><label>الجنس</label><select id="p_gender"><option value="ذكر">ذكر</option><option value="أنثى">أنثى</option></select></div>
+      <div class="field"><label>رقم الهاتف</label><input id="p_phone" placeholder="010xxxxxxxx"></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>الطبيب المعالج</label><input id="p_doctor" placeholder="د. اسم الطبيب"></div>
+      <div class="field"><label>مسؤول المعمل</label><input id="lab_director" value="د. أحمد حسن"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3H4v5l7 9h9l-7-9V3z"/><path d="M9 3h6"/></svg>
+      التحاليل والنتائج
+    </div>
+    <div class="tests-header">
+      <span>اسم التحليل</span><span>النتيجة</span><span>الوحدة</span><span>المعدل الطبيعي</span><span>الحالة</span><span></span>
+    </div>
+    <div id="testsContainer"></div>
+    <button class="btn-add" onclick="addTest()">+ إضافة تحليل جديد</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5l3 3L12 15l-4 1 1-4z"/></svg>
+      ملاحظات الطبيب
+    </div>
+    <div class="field"><textarea id="notes" placeholder="أكتب أي ملاحظات أو توصيات للمريض هنا..."></textarea></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-green" onclick="printReport()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      طباعة / حفظ PDF
+    </button>
+    <button class="btn btn-outline" onclick="loadDemo()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      بيانات تجريبية
+    </button>
+    <button class="btn btn-outline" onclick="clearAll()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      مسح الكل
+    </button>
+  </div>
+</div>
+
+<!-- منطقة الطباعة المخفية -->
+<div id="printArea"></div>
+
+<div id="toast"></div>
+
+<script>
+document.getElementById('report_date').value = new Date().toISOString().split('T')[0];
+let testCounter = 0;
+
+function addTest(data={}) {
+  testCounter++;
+  const id = 'tr'+testCounter;
+  const div = document.createElement('div');
+  div.className='test-row'; div.id=id;
+  div.innerHTML=`
+    <input type="text" placeholder="اسم التحليل" value="${data.name||''}" class="t-name">
+    <input type="text" placeholder="النتيجة" value="${data.value||''}" class="t-val">
+    <input type="text" placeholder="mg/dL" value="${data.unit||''}" class="t-unit">
+    <input type="text" placeholder="70–100" value="${data.normal_range||''}" class="t-range">
+    <select class="t-status">
+      <option value="normal"${(data.status||'normal')==='normal'?' selected':''}>طبيعي</option>
+      <option value="high"${data.status==='high'?' selected':''}>مرتفع</option>
+      <option value="low"${data.status==='low'?' selected':''}>منخفض</option>
+      <option value="critical"${data.status==='critical'?' selected':''}>حرج</option>
+    </select>
+    <button class="btn-del" onclick="document.getElementById('${id}').remove()">×</button>`;
+  document.getElementById('testsContainer').appendChild(div);
+}
+
+function getFormData() {
+  const tests=[];
+  document.querySelectorAll('.test-row').forEach(row=>{
+    const name=row.querySelector('.t-name').value.trim();
+    if(!name)return;
+    tests.push({name,value:row.querySelector('.t-val').value.trim(),unit:row.querySelector('.t-unit').value.trim(),normal_range:row.querySelector('.t-range').value.trim(),status:row.querySelector('.t-status').value});
+  });
+  return {
+    report_no:document.getElementById('report_no').value,
+    date:document.getElementById('report_date').value,
+    lab_director:document.getElementById('lab_director').value,
+    notes:document.getElementById('notes').value,
+    patient:{name:document.getElementById('p_name').value,order_no:document.getElementById('p_order').value,age:document.getElementById('p_age').value,gender:document.getElementById('p_gender').value,doctor:document.getElementById('p_doctor').value,phone:document.getElementById('p_phone').value},
+    tests
+  };
+}
+
+const SL={normal:'طبيعي',high:'مرتفع ↑',low:'منخفض ↓',critical:'حرج !'};
+const SC={normal:'#2E7D32',high:'#C62828',low:'#1565C0',critical:'#B71C1C'};
+const SB={normal:'#E8F5E9',high:'#FFEBEE',low:'#E3F2FD',critical:'#FFCDD2'};
+
+function buildReportHTML(data) {
+  const rows = data.tests.map((t,i)=>`
+    <tr style="background:${i%2===0?'#F8FAFD':'#fff'}">
+      <td style="text-align:center"><span class="s-badge" style="background:${SB[t.status]};color:${SC[t.status]};-webkit-print-color-adjust:exact;print-color-adjust:exact">${SL[t.status]||'طبيعي'}</span></td>
+      <td style="text-align:center">${t.normal_range||'—'}</td>
+      <td style="text-align:center">${t.unit||'—'}</td>
+      <td style="text-align:center;color:${t.status!=='normal'?SC[t.status]:'#1A2B45'};font-weight:${t.status!=='normal'?700:400}">${t.value||'—'}</td>
+      <td style="text-align:right;font-weight:600">${t.name}</td>
+    </tr>`).join('');
+
+  return `
+  <div style="font-family:'Cairo',sans-serif;direction:rtl;background:#fff">
+    <div class="rpt-header">
+      <div>
+        <div class="rpt-lab-name">Trust Lab | معمل ترست لاب</div>
+        <div class="rpt-lab-sub">معمل التحليل الطبي المعتمد</div>
+        <div class="rpt-badges">
+          <span class="rpt-badge">رقم التقرير: ${data.report_no}</span>
+          <span class="rpt-badge">التاريخ: ${data.date}</span>
+        </div>
+      </div>
+      <div class="rpt-meta">
+        <div class="rpt-meta-title">تقرير تحليل طبي</div>
+        <div>Medical Lab Report</div>
+      </div>
+    </div>
+
+    <div class="rpt-section">
+      <div class="rpt-sec-label">بيانات المريض</div>
+      <div class="rpt-pgrid">
+        <div class="rpt-pf"><span class="rpt-pf-lbl">الاسم:</span>${data.patient.name||'—'}</div>
+        <div class="rpt-pf"><span class="rpt-pf-lbl">رقم الطلب:</span>${data.patient.order_no||'—'}</div>
+        <div class="rpt-pf"><span class="rpt-pf-lbl">العمر:</span>${data.patient.age||'—'}</div>
+        <div class="rpt-pf"><span class="rpt-pf-lbl">الجنس:</span>${data.patient.gender||'—'}</div>
+        <div class="rpt-pf"><span class="rpt-pf-lbl">الطبيب المعالج:</span>${data.patient.doctor||'—'}</div>
+        <div class="rpt-pf"><span class="rpt-pf-lbl">الهاتف:</span>${data.patient.phone||'—'}</div>
+      </div>
+    </div>
+
+    <div class="rpt-section" style="padding-top:0">
+      <div class="rpt-sec-label">نتائج التحاليل</div>
+      <table class="rpt-table">
+        <thead><tr>
+          <th>الحالة</th><th>المعدل الطبيعي</th><th>الوحدة</th><th>النتيجة</th><th style="text-align:right">اسم التحليل</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+
+    ${data.notes?`<div class="rpt-section" style="padding-top:0"><div class="rpt-notes"><div class="rpt-notes-lbl">ملاحظات الطبيب:</div><div style="font-size:11px">${data.notes}</div></div></div>`:''}
+
+    <div class="rpt-section" style="padding-top:0">
+      <div class="rpt-sigs">
+        <div class="rpt-sig"><div class="rpt-sig-lbl">مسؤول المعمل</div><div class="rpt-sig-line">${data.lab_director||''}</div></div>
+        <div class="rpt-sig"><div class="rpt-sig-lbl">الفني المستلم</div><div class="rpt-sig-line">التوقيع: ___________</div></div>
+      </div>
+    </div>
+
+    <div class="rpt-footer">
+      <span>info@trustlab.com | 086-2345678 | 010-12345678</span>
+      <span>شارع التحرير، المنيا، مصر — © 2024 Trust Lab</span>
+    </div>
+  </div>`;
+}
+
+function printReport() {
+  const data = getFormData();
+  if(!data.patient.name){showToast('⚠️ برجاء إدخال اسم المريض');return;}
+  if(!data.tests.length){showToast('⚠️ برجاء إضافة تحليل واحد على الأقل');return;}
+
+  const printArea = document.getElementById('printArea');
+  printArea.innerHTML = buildReportHTML(data);
+  printArea.style.display = 'block';
+
+  showToast('📄 اختار "حفظ كـ PDF" من نافذة الطباعة');
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      printArea.style.display = 'none';
+    }, 1000);
+  }, 400);
+}
+
+function showToast(msg,d=3500){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),d);
+}
+
+function loadDemo() {
+  document.getElementById('p_name').value='محمد علي إبراهيم';
+  document.getElementById('p_order').value='ORD-2024-0042';
+  document.getElementById('p_age').value='45 سنة';
+  document.getElementById('p_gender').value='ذكر';
+  document.getElementById('p_doctor').value='د. خالد عبدالرحمن';
+  document.getElementById('p_phone').value='0100-123-4567';
+  document.getElementById('notes').value='يُنصح بمتابعة مستوى السكر والكوليسترول مع الطبيب المعالج';
+  document.getElementById('report_no').value='LAB-2024-0042';
+  document.getElementById('testsContainer').innerHTML='';
+  testCounter=0;
+  [{name:'صورة دم كاملة CBC',value:'Normal',unit:'—',normal_range:'See report',status:'normal'},
+   {name:'سكر الدم (صائم)',value:'126',unit:'mg/dL',normal_range:'70 – 100',status:'high'},
+   {name:'هيموجلوبين',value:'13.2',unit:'g/dL',normal_range:'13.5 – 17',status:'low'},
+   {name:'كوليسترول كلي',value:'185',unit:'mg/dL',normal_range:'< 200',status:'normal'},
+   {name:'كرياتينين',value:'1.1',unit:'mg/dL',normal_range:'0.7 – 1.3',status:'normal'},
+   {name:'TSH الغدة الدرقية',value:'2.5',unit:'mIU/L',normal_range:'0.4 – 4.0',status:'normal'},
+   {name:'فيتامين D',value:'18',unit:'ng/mL',normal_range:'30 – 100',status:'low'},
+  ].forEach(t=>addTest(t));
+  showToast('✓ تم تحميل البيانات التجريبية');
+}
+
+function clearAll(){
+  ['p_name','p_order','p_age','p_doctor','p_phone','notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('testsContainer').innerHTML='';
+  testCounter=0;
+  showToast('تم مسح الكل');
+}
+
+addTest(); addTest(); addTest();
+</script>
+</body>
+</html>
